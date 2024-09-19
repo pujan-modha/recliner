@@ -283,7 +283,7 @@ export default function EmailSender() {
             />
             <Button
               type="button"
-              variant="ghost"
+              variant="link"
               size="sm"
               className="absolute right-2 top-1/2 transform -translate-y-1/2"
               onClick={() => setShowApiKey(!showApiKey)}
@@ -436,7 +436,7 @@ export default function EmailSender() {
                       </Popover>
                     </div>
                     <div className="flex items-center space-x-2 w-full">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 mt-7">
                         <Checkbox
                           id="useBatch"
                           checked={useBatch}
@@ -552,7 +552,7 @@ export default function EmailSender() {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col space-y-2">
                 <Label className="text-sm font-semibold">
                   New Scheduled Time
                 </Label>
