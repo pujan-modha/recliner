@@ -50,6 +50,7 @@ export default function EmailSender() {
   const [isLoading, setIsLoading] = useState(false);
   const [useBatch, setUseBatch] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [retrievedEmail, setRetrievedEmail] = useState<any>(null);
   const [emailPreviewSrc, setEmailPreviewSrc] = useState("");
 
