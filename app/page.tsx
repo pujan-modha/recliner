@@ -5,8 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Loader2, Eye, EyeOff, CalendarIcon, Github, Code2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Mail,
+  Loader2,
+  Eye,
+  EyeOff,
+  CalendarIcon,
+  Github,
+  Code2,
+} from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -27,21 +39,50 @@ export default function EmailSender() {
   const [replyTo, setReplyTo] = useState("");
   const [cc, setCc] = useState("");
   const [bcc, setBcc] = useState("");
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
+    undefined
+  );
   const [, setActiveTab] = useState("send");
   const [emailId, setEmailId] = useState("");
-  const [updateScheduledAt, setUpdateScheduledAt] = useState<Date | undefined>(undefined);
+  const [updateScheduledAt, setUpdateScheduledAt] = useState<Date | undefined>(
+    undefined
+  );
   const [apiKey, setApiKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [useBatch, setUseBatch] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [retrievedEmail, setRetrievedEmail] = useState<any>(null);
+  const [emailPreviewSrc, setEmailPreviewSrc] = useState("");
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem("resendApiKey");
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-    }
+    const storedFromName = localStorage.getItem("fromName");
+    const storedFromEmail = localStorage.getItem("fromEmail");
+    
+    if (storedApiKey) setApiKey(storedApiKey);
+    if (storedFromName) setFromName(storedFromName);
+    if (storedFromEmail) setFromEmail(storedFromEmail);
   }, []);
+
+  useEffect(() => {
+    if (retrievedEmail && retrievedEmail.html) {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <base target="_blank">
+          </head>
+          <body style="margin:0;padding:0;">
+            ${retrievedEmail.html}
+          </body>
+        </html>
+      `;
+      const encodedHtml = btoa(unescape(encodeURIComponent(htmlContent)));
+      setEmailPreviewSrc(`data:text/html;charset=utf-8;base64,${encodedHtml}`);
+    }
+  }, [retrievedEmail]);
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
@@ -49,18 +90,31 @@ export default function EmailSender() {
     localStorage.setItem("resendApiKey", newApiKey);
   };
 
+  const handleFromNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFromName = e.target.value;
+    setFromName(newFromName);
+    localStorage.setItem("fromName", newFromName);
+  };
+
+  const handleFromEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFromEmail = e.target.value;
+    setFromEmail(newFromEmail);
+    localStorage.setItem("fromEmail", newFromEmail);
+  };
+
   const sendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     const emailData = {
-      apiKey,
       from: `"${fromName}" <${fromEmail}>`,
       to: to.split(",").map((email) => email.trim()),
       subject,
       html: htmlContent,
       text: plainTextContent,
-      reply_to: replyTo ? replyTo.split(",").map((email) => email.trim()) : undefined,
+      reply_to: replyTo
+        ? replyTo.split(",").map((email) => email.trim())
+        : undefined,
       cc: cc ? cc.split(",").map((email) => email.trim()) : undefined,
       bcc: bcc ? bcc.split(",").map((email) => email.trim()) : undefined,
       scheduled_at: scheduledDate ? scheduledDate.toISOString() : undefined,
@@ -68,10 +122,12 @@ export default function EmailSender() {
 
     try {
       const endpoint = useBatch ? "/api/send-batch-emails" : "/api/send-email";
+      const body = useBatch ? { apiKey, batch: [emailData] } : { apiKey, ...emailData };
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(emailData),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -79,7 +135,7 @@ export default function EmailSender() {
       if (response.ok) {
         toast({
           title: "Email sent successfully",
-          description: data.message,
+          description: `Your email has been sent successfully.`,
         });
         // Clear form fields on success
         setFromName("");
@@ -116,15 +172,18 @@ export default function EmailSender() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/resend/retrieve-email?id=${emailId}&apiKey=${apiKey}`);
+      const response = await fetch(
+        `/api/retrieve-email?id=${emailId}&apiKey=${apiKey}`
+      );
       const data = await response.json();
 
       if (response.ok) {
         toast({
           title: "Email retrieved successfully",
-          description: data.message,
+          description: "Email details are displayed below.",
         });
-        console.log("Retrieved email data:", data);
+        // Display the retrieved email data
+        setRetrievedEmail(data.data);
       } else {
         toast({
           title: "Error",
@@ -149,7 +208,7 @@ export default function EmailSender() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/resend/update-email", {
+      const response = await fetch("/api/update-email", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -190,7 +249,7 @@ export default function EmailSender() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/resend/cancel-email", {
+      const response = await fetch("/api/cancel-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: emailId, apiKey }),
@@ -231,7 +290,7 @@ export default function EmailSender() {
             Recliner
           </h1>
           <p className="text-lg text-gray-600">
-            Send emails using the Resend API
+            API Client for Resend Email Service
           </p>
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
@@ -326,7 +385,7 @@ export default function EmailSender() {
                       <Input
                         id="fromName"
                         value={fromName}
-                        onChange={(e) => setFromName(e.target.value)}
+                        onChange={handleFromNameChange}
                         placeholder="Your Name"
                         required
                       />
@@ -342,7 +401,7 @@ export default function EmailSender() {
                         id="fromEmail"
                         type="email"
                         value={fromEmail}
-                        onChange={(e) => setFromEmail(e.target.value)}
+                        onChange={handleFromEmailChange}
                         placeholder="sender@example.com"
                         required
                       />
@@ -468,7 +527,10 @@ export default function EmailSender() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="htmlContent" className="text-sm font-semibold">
+                    <Label
+                      htmlFor="htmlContent"
+                      className="text-sm font-semibold"
+                    >
                       HTML Message
                     </Label>
                     <Textarea
@@ -480,7 +542,10 @@ export default function EmailSender() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="plainTextContent" className="text-sm font-semibold">
+                    <Label
+                      htmlFor="plainTextContent"
+                      className="text-sm font-semibold"
+                    >
                       Plain Text Message
                     </Label>
                     <Textarea
@@ -534,6 +599,39 @@ export default function EmailSender() {
                 )}
               </Button>
             </form>
+            {retrievedEmail && (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-4 border rounded-md">
+                  <h3 className="text-lg font-semibold mb-2">Email Details</h3>
+                  <pre className="whitespace-pre-wrap overflow-x-auto text-sm bg-muted rounded-md p-4">
+                    {JSON.stringify(retrievedEmail, null, 2)}
+                  </pre>
+                </div>
+                <div className="space-y-6">
+                  {retrievedEmail.html && (
+                    <div className="p-4 border rounded-md">
+                      <h3 className="text-lg font-semibold mb-2">HTML Content</h3>
+                      <div className="w-full h-[400px] bg-white">
+                        <iframe
+                          src={emailPreviewSrc}
+                          title="Email HTML Content"
+                          className="w-full h-full border-0"
+                          sandbox="allow-scripts allow-same-origin"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {retrievedEmail.text && (
+                    <div className="p-4 border rounded-md">
+                      <h3 className="text-lg font-semibold mb-2">Plain Text Content</h3>
+                      <pre className="whitespace-pre-wrap overflow-x-auto text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-inner max-h-[400px]">
+                        {retrievedEmail.text}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="update">
             <form onSubmit={updateEmail} className="space-y-6">
