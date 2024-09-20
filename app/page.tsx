@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Mail,
   Loader2,
   Eye,
   EyeOff,
@@ -284,12 +283,44 @@ export default function EmailSender() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
-            <Mail className="w-8 h-8" />
-            Recliner
+        <div className="mx-auto sm:mx-0">
+          <h1 className="group text-3xl font-bold flex items-center gap-2 font-[family-name:var(--font-geist-mono)] border-2 border-foreground w-fit h-full rounded-md leading-none select-none overflow-hidden mx-auto sm:mx-0">
+            <div className="group-hover:hidden transition-transform">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-10 h-full bg-foreground text-background pb-1.5 pt-2 px-1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+                />
+              </svg>
+            </div>
+            <div className="hidden group-hover:block transition-transform">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-10 h-full bg-foreground text-background pb-1.5 pt-2 px-1.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21.75 9v.906a2.25 2.25 0 0 1-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 0 0 1.183 1.981l6.478 3.488m8.839 2.51-4.66-2.51m0 0-1.023-.55a2.25 2.25 0 0 0-2.134 0l-1.022.55m0 0-4.661 2.51m16.5 1.615a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V8.844a2.25 2.25 0 0 1 1.183-1.981l7.5-4.039a2.25 2.25 0 0 1 2.134 0l7.5 4.039a2.25 2.25 0 0 1 1.183 1.98V19.5Z"
+                />
+              </svg>
+            </div>
+
+            <span className="pr-1.5">recliner</span>
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 mt-2">
             API Client for Resend Email Service
           </p>
         </div>
@@ -610,7 +641,9 @@ export default function EmailSender() {
                 <div className="space-y-6">
                   {retrievedEmail.html && (
                     <div className="p-4 border rounded-md">
-                      <h3 className="text-lg font-semibold mb-2">HTML Content</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        HTML Content
+                      </h3>
                       <div className="w-full h-[400px] bg-white">
                         <iframe
                           src={emailPreviewSrc}
@@ -623,7 +656,9 @@ export default function EmailSender() {
                   )}
                   {retrievedEmail.text && (
                     <div className="p-4 border rounded-md">
-                      <h3 className="text-lg font-semibold mb-2">Plain Text Content</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Plain Text Content
+                      </h3>
                       <pre className="whitespace-pre-wrap overflow-x-auto text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-inner max-h-[400px]">
                         {retrievedEmail.text}
                       </pre>
