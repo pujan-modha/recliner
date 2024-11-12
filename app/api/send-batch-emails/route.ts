@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { makeResendRequest, handleApiResponse } from "@/app/common";
 
+/**
+ * POST handler for sending batch emails
+ * Endpoint: /api/send-batch-emails
+ * 
+ * @param request - Request object containing API key and batch of emails
+ * @returns NextResponse with success/failure status and message
+ */
 export async function POST(request: Request) {
   try {
+    // Extract batch data and API key from request body
     const { apiKey, batch } = await request.json();
 
+    // Validate request parameters and batch format
     if (
       !apiKey ||
       !Array.isArray(batch) ||
@@ -22,15 +31,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Send the batch array directly, not wrapped in an object
+    // Send batch request to Resend API
     const result = await makeResendRequest(
       "/emails/batch",
       "POST",
       apiKey,
       batch
     );
+
+    // Return standardized API response
     return handleApiResponse(result);
   } catch (error) {
+    // Log and handle any unexpected errors
     console.error("Error in send-batch-emails route:", error);
     return NextResponse.json(
       { success: false, message: "An unexpected error occurred while processing your request" },

@@ -29,6 +29,7 @@ import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
 
 export default function EmailSender() {
+  // Form field states
   const [fromName, setFromName] = useState("");
   const [fromEmail, setFromEmail] = useState("");
   const [to, setTo] = useState("");
@@ -38,32 +39,36 @@ export default function EmailSender() {
   const [replyTo, setReplyTo] = useState("");
   const [cc, setCc] = useState("");
   const [bcc, setBcc] = useState("");
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
-    undefined
-  );
-  const [, setActiveTab] = useState("send");
+  
+  // Email scheduling and management states
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [updateScheduledAt, setUpdateScheduledAt] = useState<Date | undefined>(undefined);
   const [emailId, setEmailId] = useState("");
-  const [updateScheduledAt, setUpdateScheduledAt] = useState<Date | undefined>(
-    undefined
-  );
-  const [apiKey, setApiKey] = useState("");
+  const [, setActiveTab] = useState("send");
+
+  // UI control states
   const [isLoading, setIsLoading] = useState(false);
   const [useBatch, setUseBatch] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [emailPreviewSrc, setEmailPreviewSrc] = useState("");
+  
+  // API and authentication states
+  const [apiKey, setApiKey] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [retrievedEmail, setRetrievedEmail] = useState<any>(null);
-  const [emailPreviewSrc, setEmailPreviewSrc] = useState("");
 
+  // Load stored credentials on component mount
   useEffect(() => {
     const storedApiKey = localStorage.getItem("resendApiKey");
     const storedFromName = localStorage.getItem("fromName");
     const storedFromEmail = localStorage.getItem("fromEmail");
-    
+
     if (storedApiKey) setApiKey(storedApiKey);
     if (storedFromName) setFromName(storedFromName);
     if (storedFromEmail) setFromEmail(storedFromEmail);
   }, []);
 
+  // Generate email preview when retrieved email changes
   useEffect(() => {
     if (retrievedEmail && retrievedEmail.html) {
       const htmlContent = `
@@ -84,6 +89,7 @@ export default function EmailSender() {
     }
   }, [retrievedEmail]);
 
+  // Persistent storage handlers
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
@@ -102,6 +108,10 @@ export default function EmailSender() {
     localStorage.setItem("fromEmail", newFromEmail);
   };
 
+  /**
+   * Handles the email sending process
+   * Supports both single and batch email sending modes
+   */
   const sendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -122,7 +132,9 @@ export default function EmailSender() {
 
     try {
       const endpoint = useBatch ? "/api/send-batch-emails" : "/api/send-email";
-      const body = useBatch ? { apiKey, batch: [emailData] } : { apiKey, ...emailData };
+      const body = useBatch
+        ? { apiKey, batch: [emailData] }
+        : { apiKey, ...emailData };
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -137,7 +149,6 @@ export default function EmailSender() {
           title: "Email sent successfully",
           description: `Your email has been sent successfully.`,
         });
-        // Clear form fields on success
         setFromName("");
         setFromEmail("");
         setTo("");
@@ -167,6 +178,10 @@ export default function EmailSender() {
     }
   };
 
+  /**
+   * Retrieves email details using the provided email ID
+   * Displays both raw data and HTML preview when available
+   */
   const retrieveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -203,6 +218,10 @@ export default function EmailSender() {
     }
   };
 
+  /**
+   * Updates the scheduled time for a pending email
+   * Only works for emails that haven't been sent yet
+   */
   const updateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -244,6 +263,10 @@ export default function EmailSender() {
     }
   };
 
+  /**
+   * Cancels a scheduled email
+   * Only works for emails that haven't been sent yet
+   */
   const cancelEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -284,7 +307,7 @@ export default function EmailSender() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="mx-auto sm:mx-0">
+        <div className="mx-auto sm:mx-0 select-none">
           <h1 className="group text-3xl font-bold flex items-center gap-2 font-[family-name:var(--font-geist-mono)] border-2 border-foreground w-fit h-full rounded-md leading-none select-none overflow-hidden mx-auto sm:mx-0">
             <div className="group-hover:hidden transition-transform">
               <svg
